@@ -1,0 +1,35 @@
+a{
+    text-decoration: none;
+}
+
+.navbar-nav, .navbar-nav *{
+    display: inline-block;
+    background-color: rgb(230, 255, 173);
+    width: 100%;
+}
+
+nav.navbar-nav ul, nav.navbar-nav *{
+    list-style: none;
+}
+
+nav.navbar-nav li.navbar-item{
+    font-size: 0.9rem;
+    width: 20%;
+    /* animation-name: animate-background; */
+    /* animation-duration: 200ms; */
+    /* animation-play-state: paused; */
+    /* animation-direction: reverse; */
+    transition: 200ms;
+}
+
+@keyframes animate-background{
+    from {background-color: red; font-size: 0.9rem;}
+    to {background-color: royalblue; font-size: 1.1rem;}
+
+}
+nav.navbar-nav li.navbar-item:hover{
+    background-color: royalblue;
+    font-size: 1.1rem;
+    /* animation-name: animate-background;
+    animation-duration: 200ms; */
+}
