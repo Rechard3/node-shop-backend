@@ -32,9 +32,12 @@ function fetchCart(req, res, next) {
   Cart.findById(req.user.cart)
     .select("items")
     .then((cart) => {
-      const {items} = cart.toObject();
-      
-      const res = items.map(item => ({...item.product, quantity: item.quantity}));
+      const { items } = cart.toObject();
+
+      const res = items.map((item) => ({
+        ...item.product,
+        quantity: item.quantity,
+      }));
       return res;
     })
     .then((items) => {
@@ -48,7 +51,40 @@ function fetchCart(req, res, next) {
     });
 }
 
+/**
+ * removes an amount of product from the user cart
+ * @type {import("express").RequestHandler}
+ */
+function removeProductFromCart(req, res, next) {
+  const prodId = req.body["id"];
+  const amount = req.body["quantity"];
+  Cart.findById(req.user.cart)
+    .then((cart) => {
+      let newItems = [...cart.toObject().items];
+      const prodIdx = newItems.findIndex(({product})=>product._id.toString() == prodId.toString());
+      if(prodIdx>=0){
+        const tgtItem = newItems[prodIdx];
+        tgtItem.quantity = Math.max(0, tgtItem.quantity - amount);
+        if(tgtItem.quantity <= 0){
+          newItems = newItems.filter(p=>p.product._id.toString()!=prodId.toString());
+        }
+      }
+      cart.items = newItems;
+      return cart.save();
+    })
+    .then(cart=>{
+      res.status(StatusCodes.OK).send({status: ReasonPhrases.OK, model: cart});
+    })
+    .catch((err) => {
+      console.log(err);
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
+    });
+}
+
 module.exports = {
   addProductToCart,
   fetchCart,
+  removeProductFromCart,
 };
