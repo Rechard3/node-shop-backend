@@ -11,6 +11,13 @@
                 "start"
             ],
             "runtimeExecutable": "npm",
+            "env": {
+                "dbUser": "node1",
+                "dbPass": "wt7DvIqGCztQWAwX",
+                "db": "Cluster0",
+                "port": "3000",
+                "sessionSecret": "yRlgt5Imlsx1M+EZZ+6vVYe5N7qfUJlExzCFnw7enHR3sG5uP1H4rj79IiDz15XA5pA=",
+            },
             "skipFiles": [
                 "<node_internals>/**"
             ],
