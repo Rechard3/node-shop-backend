@@ -17,6 +17,8 @@ function constructModule() {
     sessionSecret: process.env['sessionSecret'],
     /** the directory to the root of this project */
     baseDir: path.resolve(__dirname),
+    /** the hashing algorithm used in the application */
+    hashRounds: +process.env['hashRounds'],
   };
 
   if (some(environment, (val) => !val)) {

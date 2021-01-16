@@ -4,7 +4,6 @@ const cors = require("cors");
 const express = require("express");
 const path = require("path");
 
-
 function constructModule() {
   /**
    * register all middleware defined in this module
@@ -14,8 +13,18 @@ function constructModule() {
   function registerGenericConfig(app) {
     // register body parser
     app.use(bodyparser.json());
+
+    app.options(cors()); // enable cors pre-flight requests
     // register cors
-    app.use(cors({ allowedHeaders: "*" }));
+    const whitelistOrigins = ["localhost:4200"];
+    app.use(
+      cors({
+        origin: function(origin, callback){
+          callback(null, true);
+        },
+        credentials: true,
+      })
+    );
     return app;
   }
 
@@ -38,15 +47,15 @@ function constructModule() {
 
     /** register cleanup handlers
      * @param {Server} server the Server intance created by app.listen()
-     * 
-    */
-    handleProcessSignals(server){
+     *
+     */
+    handleProcessSignals(server) {
       process.on("SIGTERM", () => {
         console.log("received SIGTERM, closing gracefully...");
         server && server.close(0);
         process.exit(0);
       });
-  
+
       process.on("SIGINT", () => {
         console.log("received SIGINT, closing gracefully...");
         server && server.close();
@@ -54,7 +63,7 @@ function constructModule() {
       });
 
       return server;
-    }
+    },
   };
 }
 

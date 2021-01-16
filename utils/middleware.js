@@ -1,4 +1,3 @@
-const { authenticate } = require("../controllers/auth.controller");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { environment } = require("../environment");
@@ -15,6 +14,7 @@ function constructModule() {
     registerAppMiddleware(app) {
       registerExpressSession(app);
       registerAuthMiddleware(app);
+
       return app;
     },
   };
@@ -24,7 +24,7 @@ function constructModule() {
       session({
         secret: environment().sessionSecret,
         store,
-        cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
+        cookie: { httpOnly: true, secure: false, path: null},
         resave: true,
         saveUninitialized: true,
       })
@@ -32,7 +32,8 @@ function constructModule() {
   }
 
   /** @param {import("express").Express} app */
-  function registerAuthMiddleware(app) {}
+  function registerAuthMiddleware(app) {
+  }
 }
 
 module.exports = constructModule();
