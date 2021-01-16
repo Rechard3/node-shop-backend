@@ -1,15 +1,15 @@
 {
-  "name": "node1",
+  "name": "osada-shoply",
   "version": "1.0.0",
-  "description": "test project for nodejs",
+  "description": "Practice project intended as experiment with MEAN stack development",
   "main": "app.js",
   "scripts": {
     "start": "node app.js --inspect",
     "watch": "nodemon . NODE_OPTIONS='--inspect'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Omar Abu Saada",
+  "license": "GPL3+",
   "dependencies": {
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",

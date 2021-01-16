@@ -1,3 +1,7 @@
+/** parse license information */
+require("./license");
+
+
 const { initApp, handleProcessSignals } = require("./utils/app-initializer");
 const { connectDB } = require("./db/nosql");
 const { environment } = require("./environment");
