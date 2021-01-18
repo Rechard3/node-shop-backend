@@ -10,6 +10,4 @@ router.post("/add-product", addProductToCart);
 router.post("/remove-product", removeProductFromCart);
 router.get("/", fetchCart);
 
-module.exports = {
-  cartRoutes: router,
-};
+module.exports.cartRoutes = router;
