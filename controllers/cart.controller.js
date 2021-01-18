@@ -25,11 +25,18 @@ async function addProductToCart(req, res, next) {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
-    }); 
+    });
 }
 
 /** @type {import("express").RequestHandler} */
 function fetchCart(req, res, next) {
+  if (!req.session.user) {
+    res
+      .status(StatusCodes.UNAUTHORIZED)
+      .send({ status: ReasonPhrases.UNAUTHORIZED });
+    return;
+  }
+
   User.findById(req.session.user._id)
     .then((user) => Cart.findById(user.cart).select("items"))
     .then((cart) => {
@@ -41,7 +48,7 @@ function fetchCart(req, res, next) {
       return res;
     })
     .then((items) => {
-      res.status(StatusCodes.OK).send(items);
+      res.status(StatusCodes.OK).send({ status: StatusCodes.OK, model: items });
     })
     .catch((err) => {
       console.error(err);

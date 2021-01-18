@@ -5,7 +5,7 @@ const _ = require("lodash");
 /** @type {import("express").RequestHandler} */
 module.exports.getProduct = (req, res, next) => {
   Product.fetchById(req.params["id"]).then((product) => {
-    res.status(200).send(product);
+    res.status(200).send({status: StatusCodes.OK, model: product});
   });
 };
 
@@ -27,7 +27,7 @@ module.exports.deleteProduct = (req, res, next) => {
 module.exports.listProducts = (req, res, next) => {
   Product.find()
     .then((products) => {
-      res.status(200).send(products);
+      res.status(200).send({status: StatusCodes.OK, model: products});
     })
     .catch((err) => {
       res.status(500).send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
@@ -43,7 +43,7 @@ module.exports.addProduct = (req, res, next) => {
   prod
     .save()
     .then((prod) => {
-      res.status(200).send(prod);
+      res.status(200).send({status: StatusCodes.OK, model: prod});
     })
     .catch((err) => {
       console.error("an error occured: ");
@@ -65,7 +65,7 @@ module.exports.editProduct = (req, res, next) => {
       _.assign(prod, modProd);
       prod.save();
       console.log(prod);
-      res.status(StatusCodes.OK).send({ status: ReasonPhrases.OK });
+      res.status(StatusCodes.OK).send({ status: ReasonPhrases.OK, model: prod });
     })
     .catch((err) => {
       console.error(err);
