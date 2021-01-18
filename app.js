@@ -6,10 +6,10 @@ const { initApp, handleProcessSignals } = require("./utils/app-initializer");
 const { connectDB } = require("./db/nosql");
 const { environment } = require("./environment");
 const apiRoutes = require("./routes/global.routes");
-const { registerAppMiddleware } = require("./utils/middleware");
 const https = require("https");
 const fs = require("fs");
 const { User } = require("./models/user.model");
+const { registerAppMiddleware } = require("./middleware/middleware");
 
 Promise.resolve()
   .then(() => {

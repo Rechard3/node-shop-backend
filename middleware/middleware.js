@@ -1,6 +1,7 @@
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { environment } = require("../environment");
+const {checkAuthenticity} = require("./auth.middleware");
 
 function constructModule() {
   const mongoUri = `mongodb+srv://${environment().dbUser}:${
@@ -24,8 +25,8 @@ function constructModule() {
       session({
         secret: environment().sessionSecret,
         store,
-        cookie: { httpOnly: true, secure: false, path: null},
-        resave: true,
+        cookie: { httpOnly: true, secure: false, path: "/", sameSite: false},
+        resave: false,
         saveUninitialized: true,
       })
     );
@@ -33,6 +34,8 @@ function constructModule() {
 
   /** @param {import("express").Express} app */
   function registerAuthMiddleware(app) {
+    app.use(checkAuthenticity);
+    return app;
   }
 }
 
