@@ -1,10 +1,18 @@
 const mongoose = require("mongoose");
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   username: {
     type: String,
     required: true,
+    validate: async function unique() {
+      return new Promise((resolve, reject) => {
+        User.findOne({ username: this.username }, (err, result) => {
+          if (result) reject("another user with the same name was found");
+          else resolve(true);
+        });
+      });
+    },
   },
   password: {
     type: String,
@@ -20,10 +28,10 @@ const UserSchema = new Schema({
   cart: {
     type: Schema.Types.ObjectId,
     require: true,
-    ref: "Cart"
-  }
+    ref: "Cart",
+  },
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 
-module.exports = {User, UserSchema};
+module.exports = { User, UserSchema };
