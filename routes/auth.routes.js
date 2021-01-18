@@ -6,14 +6,17 @@ const {
   readUser,
   updateUser,
   authenticate,
+  logout,
 } = require("../controllers/auth.controller");
+const { hasRole, isAuthenticated } = require("../middleware/auth.middleware");
 
 const router = Router();
 
 router.post("/login", authenticate);
 router.post("/", addUser);
-router.get("/", readUser);
-router.put("/", updateUser);
-router.post("/delete", deleteUser);
+router.get("/", isAuthenticated, readUser);
+router.put("/", isAuthenticated, updateUser);
+router.post("/delete", isAuthenticated, hasRole("admin"), deleteUser);
+router.post("/logout", isAuthenticated, logout);
 
-module.exports.userRoutes = router;
+module.exports.authRoutes = router;

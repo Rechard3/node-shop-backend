@@ -4,18 +4,43 @@ const { Cart } = require("../models/cart.model");
 const bcrypt = require("bcrypt");
 const { User } = require("../models/user.model");
 const { environment } = require("../environment");
+const _ = require("lodash");
 
 function constructModule() {
   return {
     /** @type {import("express").RequestHandler} */
     authenticate(req, res, next) {
-      res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
       const username = req.body["username"];
       const password = req.body["password"];
-
-      throw new Error("authentication not implemented");
+      return User.findOne({ username })
+        .then(
+          (user) =>
+            new Promise((resolve, reject) =>
+              bcrypt.compare(password, user.password, (err, result) => {
+                if (result == true) resolve(user);
+                else reject("passwords do not match");
+              })
+            )
+        )
+        .then((user) => {
+          req.session.user = user.toObject({ depopulate: true });
+          req.session.isAuthenticated = true;
+          return user;
+        })
+        .then(
+          (user) => {
+            res.status(StatusCodes.OK).send({
+              status: ReasonPhrases.OK,
+              model: _.pick(user, ["username", "email"]),
+            });
+          },
+          (reason) => {
+            res
+              .status(StatusCodes.UNAUTHORIZED)
+              .send({ status: ReasonPhrases.UNAUTHORIZED });
+          }
+        )
+        .catch({});
     },
 
     /** @type {import("express").RequestHandler} */
@@ -31,24 +56,31 @@ function constructModule() {
       if (some(userData, isNil)) {
         throw new Error("user data incomplete");
       }
-      userData.password = bcrypt.hashSync(
-        userData.password,
-        environment().hashRounds
-      );
-      new Cart({ items: [] })
-        .save()
-        .then((cart) => {
-          const user = new User({ ...userData, cart });
-          return Promise.all(user.save(), cart);
+
+      const user = new User(userData);
+      const validation = user
+        .validate()
+        .catch((reason) => {
+          console.log(reason);
+          res.status(500).send({ status: reason });
+          throw new Error("model invalid");
         })
-        .then(([user, cart]) => {
-          cart.user = user;
-          return cart.save().then((cart) => user);
+        .then(() => bcrypt.hash(userData.password, environment().hashRounds))
+        .then((pass) => {
+          user.password = pass;
+          return user.save();
         })
         .then((user) => {
-          res
-            .status(StatusCodes.CREATED)
-            .send({ status: ReasonPhrases.CREATED, model: user });
+          return new Cart({ items: [], user }).save().then((cart) => user);
+        })
+        .then((user) => {
+          res.status(StatusCodes.CREATED).send({
+            status: ReasonPhrases.CREATED,
+            model: _.omit(user.toObject({ depopulate: true }), [
+              "password",
+              "cart",
+            ]),
+          });
         })
         .catch((error) => {
           console.error(error);
@@ -86,6 +118,18 @@ function constructModule() {
       res
         .status(StatusCodes.NOT_IMPLEMENTED)
         .send({ status: ReasonPhrases.NOT_IMPLEMENTED });
+    },
+
+    /** @type {import("express").RequestHandler} */
+    logout(req, res, next) {
+      req.session.destroy((err) => {
+        if(err){
+          console.log(err);
+          res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({status: ReasonPhrases.INTERNAL_SERVER_ERROR});
+          return;
+        }
+        res.status(StatusCodes.OK).send({status: ReasonPhrases.OK});
+      });
     },
   };
 }
