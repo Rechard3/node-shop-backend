@@ -8,8 +8,11 @@ function constructModule() {
 
   return {
     /** connect mongoose to the mongo-db database end return the result
-     * @return {Promise<typeof mongoose>} */
-    connectDB() {
+     * @param {import("express").Express} app
+     * @return {Promise<typeof mongoose>}
+     */
+    connectDB(app) {
+      console.log("connecting mongoose to MongoDB...");
       if(mongooseConnection) return Promise.resolve(mongooseConnection);
       return mongoose
         .connect(mongoUri, { useUnifiedTopology: true, useNewUrlParser: true })

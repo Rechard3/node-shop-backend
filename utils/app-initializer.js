@@ -3,6 +3,9 @@ const bodyparser = require("body-parser");
 const cors = require("cors");
 const express = require("express");
 const path = require("path");
+const cookieParser = require("cookie-parser");
+const csrf = require("csurf");
+const { registerAppMiddleware } = require("../middleware/middleware");
 
 function constructModule() {
   /**
@@ -11,20 +14,25 @@ function constructModule() {
    * @returns {import("express").Express} the express instance passed in 'app'
    */
   function registerGenericConfig(app) {
+    /**  */
+    registerAppMiddleware(app);
+
+    app.use(cookieParser()); // needed for session csrf
     // register body parser
     app.use(bodyparser.json());
 
-    app.options(cors()); // enable cors pre-flight requests
-    // register cors
-    const whitelistOrigins = ["localhost:4200"];
-    app.use(
-      cors({
-        origin: function(origin, callback){
-          callback(null, true);
-        },
-        credentials: true,
-      })
-    );
+    app.use((req, res, next) => {
+      console.log("processing request to: ", req.path);
+      next();
+    });
+
+    /* register csrf token with the request */
+    app.use(csrf());
+    // app.all("*", (req, res, next) => {
+    //   res.cookie("XSRF-TOKEN", req.csrfToken());
+    //   next();
+    // });
+
     return app;
   }
 
@@ -33,15 +41,16 @@ function constructModule() {
     /**
      * @returns {import("express").Express} express app with middleware registered
      */
-    initApp() {
-      // create the express app
-      const app = express();
-      registerGenericConfig(app);
-      // register static files path
+    createApp() {
+      console.log("creating express application");
+      return express();
+    },
+
+    /** @param {import("express").Express} app */
+    registerStaticFiles(app) {
       app.use(
         express.static(path.resolve(path.join(environment().baseDir, "public")))
       );
-
       return app;
     },
 
@@ -50,6 +59,13 @@ function constructModule() {
      *
      */
     handleProcessSignals(server) {
+      console.info(
+        "*".repeat(100),
+        "\napp is listening on ",
+        environment().port,
+        "\n" + "*".repeat(100)
+      );
+
       process.on("SIGTERM", () => {
         console.log("received SIGTERM, closing gracefully...");
         server && server.close(0);

@@ -1,5 +1,8 @@
-const { some } = require("lodash");
+const { some, isNil } = require("lodash");
 const path = require("path");
+require("dotenv").config({
+  path: process.env['dev'] ? "./env/dev.env" : "./env/prod.env",
+});
 
 /** construct this module and return the exported object */
 function constructModule() {
@@ -19,9 +22,13 @@ function constructModule() {
     baseDir: path.resolve(__dirname),
     /** the hashing algorithm used in the application */
     hashRounds: +process.env['hashRounds'],
+    /** are we in development environment or production? */
+    prod: (+process.env['dev'])==0,
+    /** the public domain of the application */
+    publicDomain: process.env['publicDomain'],
   };
 
-  if (some(environment, (val) => !val)) {
+  if( some(environment, isNil) ){
     throw new Error("Environment not set properly");
   }
 
