@@ -9,7 +9,7 @@ const { cartRoutes } = require("./cart.routes");
 const { orderRoutes } = require("./order.routes");
 const { isAuthenticated, hasRole } = require("../middleware/auth.middleware");
 
-router.use("/product", isAuthenticated, productRoutes);
+router.use("/product", productRoutes);
 router.use("/admin", isAuthenticated, hasRole("admin"), adminRoutes);
 router.use("/shop", shopRoutes);
 router.use("/cart", isAuthenticated, cartRoutes);
