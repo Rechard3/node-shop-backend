@@ -23,7 +23,11 @@ function constructModule() {
     /** the hashing algorithm used in the application */
     hashRounds: +process.env['hashRounds'],
     /** are we in development environment or production? */
-    prod: (+process.env['dev'])==0,
+    prod: /^prod$/.test(process.env['NODE_ENV']),
+    /** are we in test environment (unit/integration/e2e tests) */
+    test: /^test$/.test(process.env['NODE_ENV']),
+    /** are we in development environment */
+    dev: /^dev$/.test(process.env['NODE_ENV']),
     /** the public domain of the application */
     publicDomain: process.env['publicDomain'],
   };

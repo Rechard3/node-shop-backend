@@ -1,40 +1,7 @@
 const { environment } = require("../environment");
-const bodyparser = require("body-parser");
-const cors = require("cors");
 const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const csrf = require("csurf");
-const { registerAppMiddleware } = require("../middleware/middleware");
 
 function constructModule() {
-  /**
-   * register all middleware defined in this module
-   * @param {import("express").Express} app the express instance to register with
-   * @returns {import("express").Express} the express instance passed in 'app'
-   */
-  function registerGenericConfig(app) {
-    /**  */
-    registerAppMiddleware(app);
-
-    app.use(cookieParser()); // needed for session csrf
-    // register body parser
-    app.use(bodyparser.json());
-
-    app.use((req, res, next) => {
-      console.log("processing request to: ", req.path);
-      next();
-    });
-
-    /* register csrf token with the request */
-    app.use(csrf());
-    // app.all("*", (req, res, next) => {
-    //   res.cookie("XSRF-TOKEN", req.csrfToken());
-    //   next();
-    // });
-
-    return app;
-  }
 
   // return the exported object
   return {
@@ -46,24 +13,16 @@ function constructModule() {
       return express();
     },
 
-    /** @param {import("express").Express} app */
-    registerStaticFiles(app) {
-      app.use(
-        express.static(path.resolve(path.join(environment().baseDir, "public")))
-      );
-      return app;
-    },
-
     /** register cleanup handlers
-     * @param {Server} server the Server intance created by app.listen()
+     * @param {import("http").Server} server the Server intance created by app.listen()
      *
      */
     handleProcessSignals(server) {
       console.info(
-        "*".repeat(100),
+        "*".repeat(50),
         "\napp is listening on ",
         environment().port,
-        "\n" + "*".repeat(100)
+        "\n" + "*".repeat(50)
       );
 
       process.on("SIGTERM", () => {
@@ -77,6 +36,12 @@ function constructModule() {
         server && server.close();
         process.exit(0);
       });
+
+      process.on("SIGINT", () => {
+        console.log("received SIGKILL, closing gracefully...");
+        server && server.close();
+        process.exit(0);
+      });      
 
       return server;
     },

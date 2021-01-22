@@ -17,4 +17,4 @@ router.use("/order", isAuthenticated, orderRoutes);
 router.use("/auth", authRoutes);
 router.use("/", notFound);
 
-module.exports = router;
+module.exports = {apiRoutes: router};

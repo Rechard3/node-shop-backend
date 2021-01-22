@@ -53,17 +53,17 @@ function constructModule() {
         "lastname",
         "dateofbirth",
       ]);
-      if (some(userData, isNil)) {
-        throw new Error("user data incomplete");
-      }
+      // if (some(userData, isNil)) {
+      //   throw new Error("user data incomplete");
+      // }
 
       const user = new User(userData);
       const validation = user
         .validate()
         .catch((reason) => {
-          console.log(reason);
-          res.status(500).send({ status: reason });
-          throw new Error("model invalid");
+          // res.status(500).send({ status: reason });
+          console.error(reason);
+          throw reason;
         })
         .then(() => bcrypt.hash(userData.password, environment().hashRounds))
         .then((pass) => {
@@ -83,7 +83,8 @@ function constructModule() {
           });
         })
         .catch((error) => {
-          console.error(error);
+          console.error("invalid user data received: ", userData);
+          console.error("request body: ", req.body);
           res
             .status(StatusCodes.INTERNAL_SERVER_ERROR)
             .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
@@ -101,7 +102,6 @@ function constructModule() {
         .catch((err) => {
           res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             status: ReasonPhrases.INTERNAL_SERVER_ERROR,
-            error: err,
           });
         });
     },
@@ -123,12 +123,14 @@ function constructModule() {
     /** @type {import("express").RequestHandler} */
     logout(req, res, next) {
       req.session.destroy((err) => {
-        if(err){
+        if (err) {
           console.log(err);
-          res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({status: ReasonPhrases.INTERNAL_SERVER_ERROR});
+          res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
           return;
         }
-        res.status(StatusCodes.OK).send({status: ReasonPhrases.OK});
+        res.status(StatusCodes.OK).send({ status: ReasonPhrases.OK });
       });
     },
   };

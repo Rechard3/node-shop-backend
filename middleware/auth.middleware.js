@@ -28,9 +28,7 @@ function constructModule() {
     checkAuthenticity(req, res, next) {
       if (req.session.user && !req.session.isAuthenticated) {
         req.session.isAuthenticated = true;
-        req.session.save().then(() => {
-          next();
-        });
+        next();
       }
       next();
     },

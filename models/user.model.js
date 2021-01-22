@@ -27,7 +27,7 @@ const UserSchema = new Schema({
   dateofbirth: Date,
   cart: {
     type: Schema.Types.ObjectId,
-    require: true,
+    require: false,
     ref: "Cart",
   },
 });
