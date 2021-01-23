@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
 <style>
     p{
         text-align: justify;
@@ -25,8 +22,6 @@
     }
 
 </style>
-</head>
-
 <body>
 <h1 align="center"> Osada Shoply / Backend Application </h1>
 
@@ -119,5 +114,3 @@ along with this program. If not, see <a href="https://www.gnu.org/licenses/">htt
 <h2> Not Accepting Contributions </h2>
 
 </body>
-
-</html>
