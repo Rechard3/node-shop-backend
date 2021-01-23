@@ -1,12 +1,10 @@
 process.env["NODE_ENV"] = "test";
-
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const _ = require("lodash");
 const request = require("supertest");
 
 const { startApplication } = require("../../../app");
 const { User } = require("../../../models/user.model");
-const {environment} = require("../../../environment");
 const {clearConsole} = require("../../helpers/console.helpers");
 
 
@@ -28,19 +26,16 @@ describe("POST /api/auth/login", function () {
     lastname: "user",
   }));
 
-
-
   beforeAll(async function () {
     const temp = await startApplication();
     app = temp.app;
     server = temp.server;
-  });
-
-  beforeAll(async function () {
+    await User.deleteMany();
     return await Promise.all(
       registeredUsers.map(user => User.createUser(user))
-    ).catch();
+    ).catch(console.error);
   });
+
 
   afterAll(async function () {
     await User.deleteMany();
@@ -64,6 +59,7 @@ describe("POST /api/auth/login", function () {
   });
 
   it("should not allow login with unregistered user", async function (done) {
+    const users = await User.find().exec();
     loginWith(
       { ...registeredUsers[0], username: `${Math.random()}` },
       done
@@ -99,7 +95,7 @@ describe("POST /api/auth/login", function () {
     const loginReq = loginWith(
       {
         ...registeredUsers[0],
-        password: registeredUsers[0].email,
+        password: registeredUsers[0].username,
       },
       done
     );

@@ -9,38 +9,39 @@ const _ = require("lodash");
 function constructModule() {
   return {
     /** @type {import("express").RequestHandler} */
-    authenticate(req, res, next) {
+    async authenticate(req, res, next) {
       const username = req.body["username"];
       const password = req.body["password"];
-      return User.findOne({ username })
-        .then(
-          (user) =>
-            new Promise((resolve, reject) =>
-              bcrypt.compare(password, user && user.password, (err, result) => {
-                if (result) resolve(user);
-                else reject("passwords do not match");
-              })
-            )
-        )
-        .then((user) => {
-          req.session.user = user.toObject({ depopulate: true });
-          req.session.isAuthenticated = true;
-          return user;
-        })
-        .then(
-          (user) => {
-            res.status(StatusCodes.OK).send({
-              status: ReasonPhrases.OK,
-              model: _.pick(user, ["username", "email"]),
-            });
-          },
-          (reason) => {
-            res
-              .status(StatusCodes.UNAUTHORIZED)
-              .send({ status: ReasonPhrases.UNAUTHORIZED });
-          }
-        )
-        .catch({});
+
+      const user = await User.findOne({ username }).exec();
+      if (!user) {
+        // send UNAUTHORIZED instead of NOT_FOUND
+        // sending NOT_FOUND can open a "user-enumeration" attack surface
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .send({ status: ReasonPhrases.UNAUTHORIZED });
+        return;
+      }
+
+      const compare = await bcrypt.compare(password, user.password);
+      if (!compare) {
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .send({ status: ReasonPhrases.UNAUTHORIZED });
+        return;
+      }
+
+      req.session.user = user.toObject({ depopulate: true });
+      req.session.isAuthenticated = true;
+      const returnedFields = _.omit(user.toObject({ depopulate: true }), [
+        "password",
+      ]);
+      res
+        .status(StatusCodes.OK)
+        .send({
+          status: ReasonPhrases.OK,
+          model: returnedFields,
+        });
     },
 
     /** @type {import("express").RequestHandler} */
@@ -54,19 +55,7 @@ function constructModule() {
         "dateofbirth",
       ]);
 
-      const user = new User(userData);
-      const validation = user
-        .validate()
-        .catch((reason) => {
-          // res.status(500).send({ status: reason });
-          console.error(reason);
-          throw reason;
-        })
-        .then(() => bcrypt.hash(userData.password, environment().hashRounds))
-        .then((pass) => {
-          user.password = pass;
-          return user.save();
-        })
+      User.createUser(userData)
         .then((user) => {
           return new Cart({ items: [], user }).save().then((cart) => user);
         })

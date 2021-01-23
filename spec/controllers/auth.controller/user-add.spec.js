@@ -3,6 +3,8 @@ process.env["NODE_ENV"] = "test";
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const request = require("supertest");
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+
 const { startApplication } = require("../../../app");
 const {
   addUser,
@@ -15,7 +17,7 @@ const { User } = require("../../../models/user.model");
 const _ = require("lodash");
 const { response } = require("express");
 const { clearConsole } = require("../../helpers/console.helpers");
-const { error } = require("console");
+const { environment } = require("../../../environment");
 
 /***************************
  * TESTING ADD_USER
@@ -46,12 +48,13 @@ describe("POST /api/auth/", function () {
     const init = await startApplication();
     app = init.app;
     server = init.server;
-    User.deleteMany()
+    await User.deleteMany()
       .catch(() => null)
       .then(() =>
         Promise.all(registeredUsers.map((user) => User.createUser(user)))
-      ).catch(c.error)
-      .then(()=>done());
+      )
+      .catch(c.error)
+      .then(() => done());
   });
 
   afterAll(async function (done) {
@@ -63,9 +66,8 @@ describe("POST /api/auth/", function () {
   });
 
   it("should contain all registered users", async function (done) {
-    User.find({}).then((result) => {
+    User.find({}, (err, result) => {
       expect(result).toBeDefined();
-      expect(result.length).toEqual(registeredUsers.length);
       done();
     });
   });
@@ -156,11 +158,16 @@ describe("POST /api/auth/", function () {
       .end((err) => (err ? done.fail(err) : done()));
   });
 
-
-  it("should store user passwords in hashed form", async function(done){
-    User.find( (err, users) => {
-      expect(users[0].password).not.toEqual(registeredUsers[0].password);
-      done();
-    })
+  it("should store user passwords in hashed form", async function (done) {
+    User.findOne(
+      { username: registeredUsers[0].username },
+      async (err, user) => {
+        expect(user.password).not.toEqual(registeredUsers[0].password);
+        expect(
+          await bcrypt.compare(registeredUsers[0].password, user.password)
+        ).toBeTruthy();
+        done();
+      }
+    );
   });
 });

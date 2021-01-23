@@ -1,6 +1,4 @@
 process.env["NODE_ENV"] = "test";
-require("dotenv").config({ path: "./env/dev.env" });
-const {environment} = require("../environment");
 const {connectDB} = require("../db/nosql");
 
 describe("Express Application", function () {

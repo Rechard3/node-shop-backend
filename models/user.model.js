@@ -39,7 +39,7 @@ const UserSchema = new Schema({
 
 UserSchema.statics.createUser = async function (value){
   const userData = await bcrypt.hash(value.password, environment().hashRounds).then(password => ({...value, password}));
-  return new User(await userData).save();
+  return new User(userData).save();
 }
 
 const User = mongoose.model("User", UserSchema);
