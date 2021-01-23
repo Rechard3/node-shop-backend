@@ -1,27 +1,4 @@
-<style style="display: none">
-    p{
-        text-align: justify;
-    }
-    code{
-        font-family: mono;
-        background-color: #333;
-        color: #eee;
-        border-radius: 2pt;
-        padding: 2pt;
-    }
-    .center{
-        align: center;
-        text-align: center;
-    }
-    h2{
-        font-size: 1.75rem;
-    }
 
-    body{
-        background-color: #1e1e1e;
-    }
-
-</style>
 <body>
 <h1 align="center"> Osada Shoply / Backend Application </h1>
 
