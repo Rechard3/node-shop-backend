@@ -28,7 +28,7 @@ function constructModule() {
           handleProcessSignals(server);
           return { server, app };
         })
-        .catch(console.error);
+        .catch(err => {console.error(err); return {app: null, server: null}});
     },
     createApp,
     connectMongoDataBase,

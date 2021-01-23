@@ -16,8 +16,8 @@ function constructModule() {
         .then(
           (user) =>
             new Promise((resolve, reject) =>
-              bcrypt.compare(password, user.password, (err, result) => {
-                if (result == true) resolve(user);
+              bcrypt.compare(password, user && user.password, (err, result) => {
+                if (result) resolve(user);
                 else reject("passwords do not match");
               })
             )
@@ -53,9 +53,6 @@ function constructModule() {
         "lastname",
         "dateofbirth",
       ]);
-      // if (some(userData, isNil)) {
-      //   throw new Error("user data incomplete");
-      // }
 
       const user = new User(userData);
       const validation = user
@@ -83,8 +80,6 @@ function constructModule() {
           });
         })
         .catch((error) => {
-          console.error("invalid user data received: ", userData);
-          console.error("request body: ", req.body);
           res
             .status(StatusCodes.INTERNAL_SERVER_ERROR)
             .send({ status: ReasonPhrases.INTERNAL_SERVER_ERROR });
