@@ -46,16 +46,12 @@ describe("POST /api/auth/", function () {
     const init = await startApplication();
     app = init.app;
     server = init.server;
-    done();
-  });
-
-  beforeEach(async function () {
-    mongoose.connection.db
-      .dropCollection(User.collection.name)
+    User.deleteMany()
       .catch(() => null)
       .then(() =>
-        Promise.all(registeredUsers.map((user) => new User(user).save()))
-      );
+        Promise.all(registeredUsers.map((user) => User.createUser(user)))
+      ).catch(c.error)
+      .then(()=>done());
   });
 
   afterAll(async function (done) {
@@ -162,7 +158,7 @@ describe("POST /api/auth/", function () {
 
 
   it("should store user passwords in hashed form", async function(done){
-    User.find().then(users => {
+    User.find( (err, users) => {
       expect(users[0].password).not.toEqual(registeredUsers[0].password);
       done();
     })

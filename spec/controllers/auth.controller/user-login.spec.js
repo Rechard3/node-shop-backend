@@ -1,17 +1,22 @@
 process.env["NODE_ENV"] = "test";
 
-const request = require("supertest");
-const { startApplication } = require("../../../app");
-const { connectDB } = require("../../../db/nosql");
-const { User } = require("../../../models/user.model");
-const _ = require("lodash");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
+const _ = require("lodash");
+const request = require("supertest");
+
+const { startApplication } = require("../../../app");
+const { User } = require("../../../models/user.model");
+const {environment} = require("../../../environment");
+const {clearConsole} = require("../../helpers/console.helpers");
+
 
 describe("POST /api/auth/login", function () {
   /** @type {import("express").Express} */
   let app;
   /** @type {import("https").Server} */
   let server;
+
+  const c = clearConsole();
 
   /** list of users to be registered before the tests begin */
   const registeredUsers = _.times(2, (n) => ({
@@ -23,6 +28,8 @@ describe("POST /api/auth/login", function () {
     lastname: "user",
   }));
 
+
+
   beforeAll(async function () {
     const temp = await startApplication();
     app = temp.app;
@@ -30,11 +37,9 @@ describe("POST /api/auth/login", function () {
   });
 
   beforeAll(async function () {
-    await User.deleteMany(); // remove all previously registered users
     return await Promise.all(
-      // register dummy data for testing
-      registeredUsers.map((user) => new User(user).save())
-    );
+      registeredUsers.map(user => User.createUser(user))
+    ).catch();
   });
 
   afterAll(async function () {
@@ -42,11 +47,20 @@ describe("POST /api/auth/login", function () {
     server.close();
   });
 
+  it("should have some users registered", async function (done) {
+    await User.find((err, users) => {
+      expect(users.length).toEqual(registeredUsers.length);
+      done();
+    });
+  });
+
   it("Should be able to login with a valid user", async function (done) {
     loginWith(registeredUsers[0], done).expect((res) => {
       if (_.has(res.body, "model.username")) return;
       throw new Error("response did not contain all properties");
-    });
+    })
+    .end((err) => (err ? done.fail(err) : done()));
+
   });
 
   it("should not allow login with unregistered user", async function (done) {
@@ -57,7 +71,9 @@ describe("POST /api/auth/login", function () {
       expect(res.status).toEqual(StatusCodes.UNAUTHORIZED);
       expect(res.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
       expect(res.body).not.toContain("model");
-    });
+    })
+    .end((err) => (err ? done.fail(err) : done()));
+
   });
 
   it("should not allow login with invalid credentials [1]", async function (done) {
@@ -65,30 +81,34 @@ describe("POST /api/auth/login", function () {
       expect(res.status).toEqual(StatusCodes.UNAUTHORIZED);
       expect(res.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
       expect(res.body).not.toContain("model");
-    });
-    // .end((err) => (err ? done.fail(err) : done()));
+    })
+    .end((err) => (err ? done.fail(err) : done()));
   });
 
   it("should not allow login with invalid credentials [2]", async function (done) {
-    loginWith(
-      { ...registeredUsers[0], password: `${Math.random()}` },
-      done
-    ).expect((res) => {
-      expect(res.status).toEqual(StatusCodes.UNAUTHORIZED);
-      expect(res.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
-      expect(res.body).not.toContain("model");
-    });
+    loginWith({ ...registeredUsers[0], password: `${Math.random()}` }, done)
+      .expect((res) => {
+        expect(res.status).toEqual(StatusCodes.UNAUTHORIZED);
+        expect(res.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
+        expect(res.body).not.toContain("model");
+      })
+      .end((err) => (err ? done.fail(err) : done()));
   });
 
   it("should not allow login with invalid credentials [3]", async function (done) {
-    loginWith({
-      ...registeredUsers[0],
-      password: registeredUsers[0].email,
-    }, done).then(resp => {
-      expect(res.status).toEqual(StatusCodes.UNAUTHORIZED);
-      expect(res.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
-      expect(res.body).not.toContain("model");
-    });
+    const loginReq = loginWith(
+      {
+        ...registeredUsers[0],
+        password: registeredUsers[0].email,
+      },
+      done
+    );
+      loginReq.expect((resp) => {
+        expect(resp.status).toEqual(StatusCodes.UNAUTHORIZED);
+        expect(resp.body.status).toEqual(ReasonPhrases.UNAUTHORIZED);
+        expect(resp.body).not.toContain("model");
+      })
+      .end((err) => (err ? done.fail(err) : done()));
   });
 
   function loginWith(creds, done) {
@@ -97,6 +117,6 @@ describe("POST /api/auth/login", function () {
       .set("Accept", "application/json")
       .set("Content-Type", "application/json")
       .send(creds)
-      .end((err) => (err ? done.fail(err) : done()));
+      // .end((err) => (err ? done.fail(err) : done()));
   }
 });

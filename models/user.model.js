@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const bcrypt = require("bcrypt");
+const { environment } = require("../environment");
 
 const UserSchema = new Schema({
   username: {
@@ -17,6 +19,9 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: true,
+    validate: function validateUserPassword(value) {
+      if (!bcrypt.getRounds(value)) throw "not encrypted";
+    },
   },
   email: {
     type: String,
@@ -31,6 +36,11 @@ const UserSchema = new Schema({
     ref: "Cart",
   },
 });
+
+UserSchema.statics.createUser = async function (value){
+  const userData = await bcrypt.hash(value.password, environment().hashRounds).then(password => ({...value, password}));
+  return new User(await userData).save();
+}
 
 const User = mongoose.model("User", UserSchema);
 
