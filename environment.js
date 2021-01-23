@@ -33,8 +33,6 @@ function constructModule() {
     test: /^test$/.test(process.env["NODE_ENV"]),
     /** are we in development environment */
     dev: /^dev$/.test(process.env["NODE_ENV"]),
-    /** the public domain of the application */
-    publicDomain: process.env["publicDomain"],
   };
 
   if (some(environment, isNil)) {
