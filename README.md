@@ -1,4 +1,4 @@
-<style>
+<style hidden>
     p{
         text-align: justify;
     }
