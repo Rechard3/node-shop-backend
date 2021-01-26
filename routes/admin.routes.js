@@ -7,4 +7,4 @@ router.use((req, res, next)=>{
     res.status(200).send({coco: 'chanelle'});
 });
 
-module.exports = router;
+module.exports.adminRoutes = router;

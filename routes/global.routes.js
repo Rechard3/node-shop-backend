@@ -1,8 +1,8 @@
 const router = require("express").Router();
 
-const productRoutes = require("./product.routes");
-const adminRoutes = require("./admin.routes");
-const shopRoutes = require("./shop.routes");
+const { productRoutes } = require("./product.routes");
+const { adminRoutes } = require("./admin.routes");
+const { shopRoutes } = require("./shop.routes");
 const { notFound } = require("../utils/route.utils");
 const { authRoutes } = require("./auth.routes");
 const { cartRoutes } = require("./cart.routes");
@@ -17,4 +17,4 @@ router.use("/order", isAuthenticated, orderRoutes);
 router.use("/auth", authRoutes);
 router.use("/", notFound);
 
-module.exports = {apiRoutes: router};
+module.exports.apiRoutes = router;
