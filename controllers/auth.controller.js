@@ -1,9 +1,8 @@
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
-const { pick, some, isNil } = require("lodash");
+const { pick } = require("lodash");
 const { Cart } = require("../models/cart.model");
 const bcrypt = require("bcrypt");
 const { User } = require("../models/user.model");
-const { environment } = require("../environment");
 const _ = require("lodash");
 
 function constructModule() {
@@ -20,7 +19,7 @@ function constructModule() {
         res
           .status(StatusCodes.UNAUTHORIZED)
           .send({ status: ReasonPhrases.UNAUTHORIZED });
-        return;
+        return [req, res, next];
       }
 
       const compare = await bcrypt.compare(password, user.password);
@@ -28,7 +27,7 @@ function constructModule() {
         res
           .status(StatusCodes.UNAUTHORIZED)
           .send({ status: ReasonPhrases.UNAUTHORIZED });
-        return;
+        return [req, res, next];
       }
 
       req.session.user = user.toObject({ depopulate: true });
@@ -36,12 +35,11 @@ function constructModule() {
       const returnedFields = _.omit(user.toObject({ depopulate: true }), [
         "password",
       ]);
-      res
-        .status(StatusCodes.OK)
-        .send({
-          status: ReasonPhrases.OK,
-          model: returnedFields,
-        });
+      res.status(StatusCodes.OK).send({
+        status: ReasonPhrases.OK,
+        model: returnedFields,
+      });
+      return [req, res, next];
     },
 
     /** @type {import("express").RequestHandler} */
